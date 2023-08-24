@@ -13,7 +13,7 @@ import { USER_TYPES } from "../../../constants/users";
 import { getColorByUserType } from "../../../utils/ui";
 
 function UsersRow(props) {
-  const { photo, phone, name, email, type, onDelete, onSuspend, onApprove, loading } = props;
+  const { photo, phone, name, email, type, isActive, onDelete, onSuspend, onApprove, loading } = props;
   const textColor = useColorModeValue("gray.700", "white");
 
   return (
@@ -67,12 +67,12 @@ function UsersRow(props) {
         <Skeleton isLoaded={!loading}>
           <Flex gap={1} justifyContent={'flex-end'}>
             {type.toLowerCase() === 'driver' &&
-              <Button p={4} borderRadius={6} bg={'green.500'} _hover={{ bg: 'green.400' }} onClick={onApprove}>
+              <Button disabled={isActive} p={4} borderRadius={6} bg={isActive ? 'gray.500' : 'green.500'} _hover={{ bg: isActive ? 'gray.400' : 'green.400' }} onClick={onApprove}>
                 <Text
                   fontSize="sm"
                   color={'white'}
                 >
-                  APPROVE
+                  {isActive ? 'APPROVED' : 'APPROVE'}
                 </Text>
               </Button>
             }

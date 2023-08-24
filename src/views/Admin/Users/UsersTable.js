@@ -32,7 +32,12 @@ export default function UsersTable({ loading, data, updateData }) {
         return a[ordering.by] < b[ordering.by] ? 1 : -1
       }
     }))
-  }, [data, ordering])
+  }, [ordering])
+
+  useEffect(() => {
+    setOrderedData(data)
+  }, [data]);
+
   const toggleOrdering = (by) => {
     if (orderingEnabled.includes(by)) {
       setOrdering({
@@ -136,6 +141,7 @@ export default function UsersTable({ loading, data, updateData }) {
               phone={row[row.type?.toLowerCase()]?.phone}
               email={row.email}
               type={row.type}
+              isActive={row.activated_profile}
               onSuspend={() => onItemSuspend(row)}
               onDelete={() => onItemDelete(row)}
               onApprove={() => onItemApprove(row)}
