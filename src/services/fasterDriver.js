@@ -47,7 +47,7 @@ export const useApi = () => {
   api.axiosInstance.interceptors.response.use((response) => {
     return response
   }, (error) => {
-    // console.log('error', error.response.status)
+    console.log('error', error.response.status)
     if (error?.response?.status === 401) {
       dispatch(logout())
       toast({
@@ -56,8 +56,9 @@ export const useApi = () => {
         status: 'error',
         duration: 3000,
       })
-      throw new Error('Unauthorized')
+      throw new Error('Unauthorized');
     }
+    return error;
   })
 
   const logoutApi = () => api.get(Endpoints.LOGOUT)
@@ -192,6 +193,8 @@ export const useApi = () => {
 
   const getSubscriptions = () => api.get(`${Endpoints.SUBSCRIPTIONS}plans/`)
   const updateSubscriptionPrice = (data) => api.patch(`${Endpoints.SUBSCRIPTIONS}update_price/`, toFormData(data))
+  const addSubscription = (data) => api.post(`${Endpoints.SUBSCRIPTIONS}subscribe/`, toFormData(data))
+  const unSubscribe = () => api.get(`${Endpoints.SUBSCRIPTIONS}unsubscribe/`)
 
   return {
     logoutApi,
@@ -240,6 +243,8 @@ export const useApi = () => {
 
     getSubscriptions,
     updateSubscriptionPrice,
+    addSubscription,
+    unSubscribe
   }
 }
 

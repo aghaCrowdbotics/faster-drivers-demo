@@ -1,8 +1,8 @@
-import {Box, Button, Divider, Flex, Grid, GridItem, Heading, Image, Text} from "@chakra-ui/react";
-import React, {useEffect, useState} from "react";
-import {Rating} from "react-simple-star-rating";
-import {ORDER_STATUS} from "../../../constants/orders";
-import {useApi} from "../../../services/fasterDriver";
+import { Box, Button, Divider, Flex, Grid, GridItem, Heading, Image, Text } from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { Rating } from "react-simple-star-rating";
+import { ORDER_STATUS } from "../../../constants/orders";
+import { useApi } from "../../../services/fasterDriver";
 import PayOrderDrawer from "./PayOrderDrawer";
 import RateOrderDrawer from "./RateOrderDrawer";
 
@@ -16,8 +16,9 @@ export default function CustomerOrders() {
   const fetchOrders = () => {
     setLoading(true)
     api.getOrdersApi()
-      .then(({data, ok}) => {
+      .then(({ data, ok }) => {
         if (ok) {
+          console.log('okay:', ok, "data:", data)
           setOrders(data?.sort((a, b) => a.updated_at < b.updated_at ? 1 : -1))
         } else {
           setOrders([])
@@ -32,45 +33,54 @@ export default function CustomerOrders() {
     fetchOrders()
   }, [])
 
+
   const unpaidOrders = orders.filter(it => it.status === ORDER_STATUS.Unpaid)
   const pendingOrders = orders.filter(it => [ORDER_STATUS.Pending, ORDER_STATUS.InTransit, ORDER_STATUS.InProgress,].includes(it.status))
   const completedOrders = orders.filter(it => [ORDER_STATUS.Delivered].includes(it.status))
+  const driverAssigendOrders = orders.filter(it => [ORDER_STATUS.DriverAssigned].includes(it.status))
 
   return (
-    <Flex flexDirection='column' pt={{base: "120px", md: "75px"}} gap={0}>
+    <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }} gap={0}>
+      {
+        driverAssigendOrders.length > 0 && <>
+          <Heading size={'lg'} my={2}>Driver Assigned Orders</Heading>
+          {driverAssigendOrders.map((order) => <Order order={order} key={order.id} firstAction={() => setPayOrder(order)} />)}
+          <Divider />
+        </>
+      }
       {
         unpaidOrders.length > 0 && <>
           <Heading size={'lg'} my={2}>Unpaid Orders</Heading>
-          {unpaidOrders.map((order) => <Order order={order} key={order.id} firstAction={() => setPayOrder(order)}/>)}
-          <Divider/>
+          {unpaidOrders.map((order) => <Order order={order} key={order.id} firstAction={() => setPayOrder(order)} />)}
+          <Divider />
         </>
       }
       {
         pendingOrders.length > 0 && <>
           <Heading size={'lg'} my={2}>Pending Orders</Heading>
-          {pendingOrders.map((order) => <Order order={order} key={order.id}/>)}
-          <Divider/>
+          {pendingOrders.map((order) => <Order order={order} key={order.id} />)}
+          <Divider />
         </>
       }
       {
         completedOrders.length > 0 && <>
           <Heading size={'lg'} my={2}>Completed Orders</Heading>
-          {orders.filter(it => [ORDER_STATUS.Delivered].includes(it.status)).map((order) => <Order order={order} key={order.id} secondAction={() => setRateOrder(order)}/>)}
+          {orders.filter(it => [ORDER_STATUS.Delivered].includes(it.status)).map((order) => <Order order={order} key={order.id} secondAction={() => setRateOrder(order)} />)}
         </>
       }
 
-      <PayOrderDrawer order={payOrder} onFinish={() => setPayOrder(null)}/>
+      <PayOrderDrawer order={payOrder} onFinish={() => setPayOrder(null)} />
       <RateOrderDrawer order={rateOrder} onFinish={() => {
         setRateOrder(null)
         fetchOrders()
-      }}/>
+      }} />
     </Flex>
   )
 }
 
 
-function Order({order, firstAction, secondAction}) {
-  const {id, status, restaurant, dishes, total, restaurant_reviewed, driver_reviewed, special_instructions} = order
+function Order({ order, firstAction, secondAction }) {
+  const { id, status, restaurant, dishes, total, restaurant_reviewed, driver_reviewed, special_instructions } = order
 
   const itemCount = dishes.reduce((acc, dish) => acc + dish.quantity, 0)
 
@@ -81,7 +91,7 @@ function Order({order, firstAction, secondAction}) {
   const fetchDishDetails = () => {
     Promise.all(dishes.map(dish => api.getDishApi(dish.dish)))
       .then((responses) => {
-        const dishDetails = responses.map(({data, ok}) => {
+        const dishDetails = responses.map(({ data, ok }) => {
           return {
             ...data,
             quantity: dishes.find(it => it.dish === data.id)?.quantity
@@ -97,7 +107,7 @@ function Order({order, firstAction, secondAction}) {
 
   return (
     <Grid
-      templateColumns={{base: "1fr", md: "repeat(4, 1fr)"}}
+      templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }}
       gridGap={0}
       py={4}
       // borderTopWidth={1}
@@ -106,7 +116,7 @@ function Order({order, firstAction, secondAction}) {
       <GridItem colSpan={3}>
         <Flex w={'100%'} gap={8}>
           <Flex w={'30%'}>
-            <Image src={restaurant?.photo} w={'260px'} h={'200px'} borderRadius={10}/>
+            <Image src={restaurant?.photo} w={'260px'} h={'200px'} borderRadius={10} />
           </Flex>
           <Flex direction={'column'} gap={2} w={'70%'}>
             <Flex justifyContent={'space-between'} w={'100%'}>
@@ -130,7 +140,7 @@ function Order({order, firstAction, secondAction}) {
             </Flex>
             <Flex direction={'column'} gap={2} w={'100%'}>
               {dishDetails.map(dd => (<Flex gap={2} key={dd?.id}>
-                <Image src={dd.image_1} h={'60px'} w={'60px'} objectFit={'cover'}/>
+                <Image src={dd.image_1} h={'60px'} w={'60px'} objectFit={'cover'} />
                 <Flex flexDirection={'column'} gap={1} w={'70%'}>
                   <Flex gap={1}>
                     {dd?.quantity > 1 ? <Text color={'primary.500'}>{dd?.quantity}x</Text> : ''} {dd?.name}
