@@ -47,7 +47,7 @@ export const useApi = () => {
   api.axiosInstance.interceptors.response.use((response) => {
     return response
   }, (error) => {
-    console.log('error', error.response.status)
+    // console.log('error', error.response.status)
     if (error?.response?.status === 401) {
       dispatch(logout())
       toast({
@@ -278,7 +278,7 @@ export const useAdminApi = () => {
     }
   })
 
-  const getUsers = () => api.get(`${Endpoints.USERS}?l=1000`)
+  const getUsers = (limit, page) => api.get(`${Endpoints.USERS}?l=${limit}&o=${(page - 1) * 10}`)
   const getUsersWithActiveSubscription = () => api.get(Endpoints.USERS, {
     active_subscription: true
   })

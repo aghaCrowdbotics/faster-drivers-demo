@@ -1,48 +1,83 @@
 // Chakra imports
-import {Box, Flex, Skeleton, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useColorModeValue} from "@chakra-ui/react";
-import React, {useEffect, useState} from "react";
-import {CiInstagram} from "react-icons/ci";
-import {useSelector} from "react-redux";
+import { Box, Flex, Skeleton, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Card from "../../../components/Card/Card";
 import CardBody from "../../../components/Card/CardBody";
 import CardHeader from "../../../components/Card/CardHeader";
 import ConfirmDialog from "../../../components/Dialog/ConfirmDialog";
-import {useAdminApi} from "../../../services/fasterDriver";
+import { useAdminApi } from "../../../services/fasterDriver";
 import UsersRow from "./UsersRow";
 import UsersTable from "./UsersTable";
 
-
-
 function Users() {
   const textColor = useColorModeValue("gray.700", "white");
-  const [data, setData] = useState([])
+  const [count, setCount] = useState(1);
   const [loading, setLoading] = useState(false)
-  const api = useAdminApi()
+  const [userData, setUserData] = useState([])
+  const api = useAdminApi();
+  const totalUserFetchLimit = 10;
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, []);
+
   const fetchUsers = () => {
-    setLoading(true)
-    api.getUsers()
-      .then(({ok, data}) => {
+    setLoading(true);
+    api.getUsers(totalUserFetchLimit, 1)
+      .then(({ ok, data }) => {
         if (ok) {
-          setData(data)
+          setUserData(data);
         }
       })
       .finally(() => setLoading(false))
   }
 
+  const fetchMoreUsers = () => {
+    api.getUsers(totalUserFetchLimit, count)
+      .then(({ ok, data }) => {
+        if (ok) {
+          if (userData.length >= 10) {
+            let updatedusers = [];
+            updatedusers = [...userData, ...data];
+            setUserData(updatedusers)
+          }
+        }
+      })
+      .finally(() => setLoading(false))
+  }
+
+  const updateUsers = useCallback(() => {
+    setLoading(true);
+    // Fetch users using the current length of userData as the limit
+    api.getUsers(userData.length, 1)
+      .then(({ ok, data }) => {
+        if (ok) {
+          setUserData(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [userData.length]);
+
+  const handleScroll = (event) => {
+    const element = event.currentTarget;
+    const reachedBottom = element.scrollTop > 0 && (Number(element.scrollHeight) - Number(element.scrollTop.toFixed(0)) === Number(element.clientHeight));
+    if (reachedBottom) {
+      setCount(count + 1);
+      fetchMoreUsers();
+    }
+  };
+
   return (
-    <Flex direction='column' pt={{base: "120px", md: "75px"}}>
-      <Card overflowX={{sm: "scroll", xl: "hidden"}}>
+    <Flex direction='column' pt={{ base: "120px", md: "75px" }}>
+      <Card maxHeight={'800px'} onScroll={handleScroll} overflowX={{ sm: "scroll", xl: "scroll" }}>
         <CardHeader p='6px 0px 22px 0px'>
           <Text fontSize='xl' color={textColor} fontWeight='bold'>
             Users
           </Text>
         </CardHeader>
         <CardBody w={'100%'}>
-          <UsersTable data={data} loading={loading} updateData={fetchUsers}/>
+          <UsersTable data={userData} loading={loading} updateData={updateUsers} />
         </CardBody>
       </Card>
     </Flex>
