@@ -1,5 +1,5 @@
 // Chakra imports
-import { Box, Flex, Skeleton, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, useToast, Skeleton, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useColorModeValue } from "@chakra-ui/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Card from "../../../components/Card/Card";
@@ -11,12 +11,14 @@ import UsersRow from "./UsersRow";
 import UsersTable from "./UsersTable";
 
 function Users() {
+  const toast = useToast();
   const textColor = useColorModeValue("gray.700", "white");
   const [count, setCount] = useState(1);
   const [loading, setLoading] = useState(false)
+  const [maxRecordFound, setMaxRecordFound] = useState(false)
   const [userData, setUserData] = useState([])
   const api = useAdminApi();
-  const totalUserFetchLimit = 10;
+  const totalUserFetchLimit = 100;
 
   useEffect(() => {
     fetchUsers()
@@ -37,10 +39,19 @@ function Users() {
     api.getUsers(totalUserFetchLimit, count)
       .then(({ ok, data }) => {
         if (ok) {
-          if (userData.length >= 10) {
+          if (data?.length < totalUserFetchLimit) {
+            toast({
+              title: 'Maximum Users Fetched',
+              description: 'You have reached the maximum number of users',
+              status: 'warning',
+              duration: 5000
+            })
+            setMaxRecordFound(true);
+          }
+          if (data?.length >= totalUserFetchLimit) {
             let updatedusers = [];
             updatedusers = [...userData, ...data];
-            setUserData(updatedusers)
+            setUserData(updatedusers);
           }
         }
       })
@@ -62,7 +73,7 @@ function Users() {
   const handleScroll = (event) => {
     const element = event.currentTarget;
     const reachedBottom = element.scrollTop > 0 && (Number(element.scrollHeight) - Number(element.scrollTop.toFixed(0)) === Number(element.clientHeight));
-    if (reachedBottom) {
+    if (reachedBottom && !maxRecordFound) {
       setCount(count + 1);
       fetchMoreUsers();
     }

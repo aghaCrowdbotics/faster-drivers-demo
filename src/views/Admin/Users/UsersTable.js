@@ -132,10 +132,10 @@ export default function UsersTable({ loading, data, updateData }) {
           key={id}
         />)
         :
-        filteredData.map((row) => {
+        filteredData?.map((row, index) => {
           return (
             <UsersRow
-              key={`${row.email}-${row.name}`}
+              key={`${row.email}-${row.name}-${index}`}
               name={row.name}
               photo={row[row.type?.toLowerCase()]?.photo}
               phone={row[row.type?.toLowerCase()]?.phone}

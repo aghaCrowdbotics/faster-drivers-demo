@@ -278,9 +278,11 @@ export const useAdminApi = () => {
     }
   })
 
-  const getUsers = (limit, page) => api.get(`${Endpoints.USERS}?l=${limit}&o=${(page - 1) * 10}`)
-  const getUsersWithActiveSubscription = () => api.get(Endpoints.USERS, {
-    active_subscription: true
+  const getUsers = (limit, page) => api.get(`${Endpoints.USERS}?l=${limit}&o=${(page - 1) * limit}`)
+  const getUsersWithActiveSubscription = (limit, page) => api.get(Endpoints.USERS, {
+    active_subscription: true,
+    l: limit,
+    o: (page - 1) * limit
   })
   const deleteUser = (userId) => api.delete(`${Endpoints.USERS}${userId}/`)
   const suspendUser = (userId) => api.post(`${Endpoints.USERS}suspend/`, { user: userId })
